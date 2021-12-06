@@ -62,10 +62,10 @@ def pca():
     print('Set pca components')
     pca = PCA(n_components=2)
     print('Started fitting...')
-    pca.fit(A)
+    pca.fit(bertData)
     print(pca.explained_variance_ratio_)
     global A_2
-    A_2 = pca.transform(A)
+    A_2 = pca.transform(bertData)
     print(A_2.shape)
     fig = px.scatter(A_2, x=0, y=1,title='PCA')
     fig.show()
@@ -76,17 +76,19 @@ def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
     reducer = umap.UMAP(n_neighbors=n_neighbors,
                       min_dist=min_dist,
                       metric=metric)
-    fit = reducer.fit(A)
-    draw_embedding(fit, show=False, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
+    fit = reducer.fit(bertData)
+    draw_embedding(fit, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
 
-    embedding = reducer.transform(A)
+    embedding = reducer.transform(bertData)
     B = embedding.tolist()
     print(type(B))
 
-def draw_embedding(fit, show=True, name="plot"):
-    p = umap.plot.points(fit)
+def draw_embedding(fit, labels, show=True, name="plot"):
+    p = umap.plot.points(fit, labels=np.array(labels))
     if show:
+        umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
         umap.plot.plt.show()
+    umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
     umap.plot.plt.savefig(f"./plots/{name}.png")
 
 def umapNeighboursRange(metric='cosine', min_dist=0.0):
@@ -111,35 +113,38 @@ def tsne():
 
     # n-iter: Maximum number of iterations for the optimization. 
     # Should be at least 250.
-    arr = np.array(A)
+    arr = np.array(bertData)
     print('t-SNE fit and transform started')
     tsne = TSNE(n_components = 2, perplexity=10, init='random', learning_rate='auto', n_iter=1500).fit_transform(arr)
     global T
     T = tsne.tolist()
 
 def preload():
-    global A
+    global bertData
     global Ids
     global Rp
-    A = []
+    global Labels
+    bertData = []
     Ids = []
     print('Loading herbert data')
     with jsonlines.open(herbertFilePath) as f:
         for line in f.iter():
-            A.append(line['features'])
+            bertData.append(line['features'])
             Ids.append(line['id'])
 
     Rp = []
+    Labels = []
     print('Loading rp data...')
     with jsonlines.open(rpFilePath) as f:
         for line in f.iter():
             Rp.append(line)
+            Labels.append(line['label'])
 
 if __name__ == '__main__':
     preload()
     
-    pca()
+    # pca()
     startUmap(metric='cosine', n_neighbors=5, min_dist=0.0)
-    tsne()
+    # tsne()
     
     api.run() 
