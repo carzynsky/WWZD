@@ -79,19 +79,28 @@ def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
                       min_dist=min_dist,
                       metric=metric)
     fit = reducer.fit(bertData)
-    draw_embedding(fit, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
 
     embedding = reducer.transform(bertData)
+    draw_embedding(embedding, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
     B = embedding.tolist()
     print(type(B))
 
-def draw_embedding(fit, labels, show=True, name="plot"):
-    p = umap.plot.points(fit, labels=np.array(labels))
+
+def draw_embedding(data, labels, show=True, name="plot"):
+    # p = umap.plot.points(data, labels=np.array(labels))
+    # umap.plot.plt.legend(bbox_to_anchor=(1, 1.05), loc=2)
+    # umap.plot.plt.savefig(f"./plots/{name}.png")
+    # if show:
+        # fig.show()
+        # hover_data = pd.DataFrame({'index':np.arange(len(labels)),
+        #                    'label':np.array(labels)})
+        # umap.plot.interactive(data, labels=np.array(labels), hover_data=hover_data)
+        # umap.plot.plt.show()
+    fig = px.scatter(data, x=0, y=1,title='UMAP', color=labels)
+    fig.write_image('plots/pca.png')
     if show:
-        umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
-        umap.plot.plt.show()
-    umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
-    umap.plot.plt.savefig(f"./plots/{name}.png")
+        fig.show()
+
 
 def umapNeighboursRange(metric='cosine', min_dist=0.0):
     print('Starting umap for various n_neighbours...')
@@ -152,4 +161,4 @@ if __name__ == '__main__':
     startUmap(metric='cosine', n_neighbors=3, min_dist=0.0)
     tsne()
     
-    api.run() 
+    # api.run() 
