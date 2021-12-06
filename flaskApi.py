@@ -1,9 +1,11 @@
 import umap
+import umap.plot
 import json
 from re import T
 import jsonlines
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from flask import Flask, json
 from sklearn.decomposition import PCA
 import plotly.express as px
@@ -68,14 +70,39 @@ def pca():
     fig = px.scatter(A_2, x=0, y=1,title='PCA')
     fig.show()
 
-def startUmap():
-    print('Starting umap...')
+def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
+    print(f'Starting umap (n_neighbors={n_neighbors}, min_dist={min_dist}, metric={metric})...')
     global B
-    B = umap.UMAP(n_neighbors=5,
-                      min_dist=0.3,
-                      metric='correlation').fit_transform(A)
-    B = B.tolist()
+    reducer = umap.UMAP(n_neighbors=n_neighbors,
+                      min_dist=min_dist,
+                      metric=metric)
+    fit = reducer.fit(A)
+    draw_embedding(fit, show=False, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
+
+    embedding = reducer.transform(A)
+    B = embedding.tolist()
     print(type(B))
+
+def draw_embedding(fit, show=True, name="plot"):
+    p = umap.plot.points(fit)
+    if show:
+        umap.plot.plt.show()
+    umap.plot.plt.savefig(f"./plots/{name}.png")
+
+def umapNeighboursRange(metric='cosine', min_dist=0.0):
+    print('Starting umap for various n_neighbours...')
+    for n in (2, 5, 10, 20, 50, 100, 200):
+        startUmap(n_neighbors=n, min_dist=min_dist, metric=metric)
+
+def umapMetricsRange(n_neighbors=5, min_dist=0.3):
+    print('Starting umap for various metrics...')
+    for m in ('euclidean', 'correlation', 'cosine', 'chebyshev'):
+        startUmap(metric=m,n_neighbors=n_neighbors, min_dist=min_dist)
+
+def umapDistRange(n_neighbors=5 ,metric='cosine'):
+    print('Starting umap for various min_dist...')
+    for d in (0.0, 0.1, 0.25, 0.5, 0.8, 0.99):
+        startUmap(min_dist=d ,n_neighbors=n_neighbors, metric='metric')
 
 def tsne():
     # Reduce dimensionality to 2 with t-SNE.
@@ -112,7 +139,7 @@ if __name__ == '__main__':
     preload()
     
     pca()
-    #startUmap()
-    #tsne()
+    startUmap(metric='cosine', n_neighbors=5, min_dist=0.0)
+    tsne()
     
     api.run() 
