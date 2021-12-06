@@ -20,6 +20,8 @@ datashader = "*"
 holoviews = "*"
 bokeh = "*"
 pyqt5 = "*"
+plotly = "*"
+kaleido = "*"
 
 [dev-packages]
 

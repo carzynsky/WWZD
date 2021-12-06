@@ -67,8 +67,9 @@ def pca():
     global A_2
     A_2 = pca.transform(bertData)
     print(A_2.shape)
-    fig = px.scatter(A_2, x=0, y=1,title='PCA')
-    fig.show()
+    
+    fig = px.scatter(A_2, x=0, y=1,title='PCA', color=Labels)
+    fig.write_image('plots/pca.png')
 
 def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
     print(f'Starting umap (n_neighbors={n_neighbors}, min_dist={min_dist}, metric={metric})...')
@@ -115,7 +116,7 @@ def tsne():
     # Should be at least 250.
     arr = np.array(bertData)
     print('t-SNE fit and transform started')
-    tsne = TSNE(n_components = 2, perplexity=10, init='random', learning_rate='auto', n_iter=1500).fit_transform(arr)
+    tsne = TSNE(n_components = 2, perplexity=10, init='random', learning_rate='auto', n_iter=1000).fit_transform(arr)
     global T
     T = tsne.tolist()
 
@@ -143,8 +144,8 @@ def preload():
 if __name__ == '__main__':
     preload()
     
-    # pca()
+    pca()
     startUmap(metric='cosine', n_neighbors=5, min_dist=0.0)
-    # tsne()
+    tsne()
     
     api.run() 
