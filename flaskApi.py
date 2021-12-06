@@ -1,3 +1,4 @@
+import umap
 import json
 from re import T
 import jsonlines
@@ -6,7 +7,6 @@ import numpy as np
 from flask import Flask, json
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import umap.umap_ as umap
 
 # file paths
 filePathRpHerbertKgr10Data = 'data/rp_herbert-kgr10.json'
@@ -46,7 +46,7 @@ def get_results_of_pca():
 @api.route('/umap', methods=['GET'])
 def get_results_of_umap():
     return json.dumps({
-            "data": "none"
+            "data": B
         })
 @api.route('/tsne', methods=['GET'])
 def get_results_of_tsne():
@@ -65,13 +65,14 @@ def pca():
     A_2 = pca.transform(A)
     print(A_2.shape)
 
-def umap():
+def startUmap():
+    print('Starting umap...')
     global B
-    fit = umap.UMAP()
-    # B = umap.UMAP(n_neighbors=5,
-    #                   min_dist=0.3,
-    #                   metric='correlation').fit_transform(A)
-    # print(type(B))
+    B = umap.UMAP(n_neighbors=5,
+                      min_dist=0.3,
+                      metric='correlation').fit_transform(A)
+    B = B.tolist()
+    print(type(B))
 
 def tsne():
     # Reduce dimensionality to 2 with t-SNE.
@@ -106,7 +107,9 @@ def preload():
 
 if __name__ == '__main__':
     preload()
+    
     pca()
-    #umap() issue with library
+    startUmap()
     tsne()
+    
     api.run() 
