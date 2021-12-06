@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from flask import Flask, json
 from sklearn.decomposition import PCA
+import plotly.express as px
 from sklearn.manifold import TSNE
 
 # file paths
@@ -64,6 +65,8 @@ def pca():
     global A_2
     A_2 = pca.transform(A)
     print(A_2.shape)
+    fig = px.scatter(A_2, x=0, y=1,title='PCA')
+    fig.show()
 
 def startUmap():
     print('Starting umap...')
@@ -109,7 +112,7 @@ if __name__ == '__main__':
     preload()
     
     pca()
-    startUmap()
-    tsne()
+    #startUmap()
+    #tsne()
     
     api.run() 
