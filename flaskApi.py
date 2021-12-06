@@ -86,11 +86,13 @@ def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
 
 def draw_embedding(fit, labels, show=True, name="plot"):
     p = umap.plot.points(fit, labels=np.array(labels))
-    if show:
-        umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
-        umap.plot.plt.show()
-    umap.plot.plt.legend(bbox_to_anchor=(1.05, 1), loc=2, mode="expand")
+    umap.plot.plt.legend(bbox_to_anchor=(1, 1.05), loc=2)
     umap.plot.plt.savefig(f"./plots/{name}.png")
+    if show:
+        hover_data = pd.DataFrame({'index':np.arange(len(labels)),
+                           'label':np.array(labels)})
+        umap.plot.interactive(fit, labels=np.array(labels), hover_data=hover_data)
+        umap.plot.plt.show()
 
 def umapNeighboursRange(metric='cosine', min_dist=0.0):
     print('Starting umap for various n_neighbours...')
