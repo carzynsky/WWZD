@@ -6,7 +6,7 @@ import jsonlines
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from flask import Flask, json
+from flask import Flask, json, request
 from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.manifold import TSNE
@@ -24,10 +24,18 @@ def get_ids():
             "ids": Ids
         })
 
-@api.route('/rp', methods=['GET'])
-def get_rp():
+@api.route('/rps', methods=['GET'])
+def get_rps():
+    quer_params = request.args
+    _Rp = Rp
+    if(len(quer_params) > 0):
+        ids = quer_params['id'].strip().split(',')
+        _Rp = []
+        for id in ids:
+            _Rp.append(list(filter(lambda x: x['id'] == id, Rp))[0])
+        
     return json.dumps({
-        "data": Rp
+        "data": list(_Rp)
     })
 
 @api.route('/rp/<rp_id>', methods=['GET'])
@@ -97,7 +105,7 @@ def draw_embedding(data, labels, show=True, name="plot"):
         # umap.plot.interactive(data, labels=np.array(labels), hover_data=hover_data)
         # umap.plot.plt.show()
     fig = px.scatter(data, x=0, y=1,title='UMAP', color=labels)
-    fig.write_image('plots/pca.png')
+    fig.write_image(f'plots/{name}.png')
     if show:
         fig.show()
 
@@ -157,8 +165,8 @@ def preload():
 if __name__ == '__main__':
     preload()
     
-    pca()
-    startUmap(metric='cosine', n_neighbors=3, min_dist=0.0)
-    tsne()
+    #pca()
+    #startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
+    #tsne()
     
-    # api.run() 
+    api.run() 
