@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from flask import Flask, json, request
+from flask_cors import CORS
 from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.manifold import TSNE
@@ -17,6 +18,7 @@ rpFilePath = 'newData/rp.jsonl'
 herbertFilePath = 'newData/herbert.jsonl'
 
 api = Flask(__name__)
+cors = CORS(api)
 
 @api.route('/ids', methods=['GET'])
 def get_ids():
@@ -165,8 +167,8 @@ def preload():
 if __name__ == '__main__':
     preload()
     
-    #pca()
-    #startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
-    #tsne()
+    pca()
+    startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
+    tsne()
     
     api.run() 
