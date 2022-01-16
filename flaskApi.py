@@ -16,6 +16,7 @@ from sklearn.manifold import TSNE
 filePathRpHerbertKgr10Data = 'data/rp_herbert-kgr10.json'
 rpFilePath = 'newData/rp.jsonl'
 herbertFilePath = 'newData/herbert.jsonl'
+configPath = 'config.json'
 
 api = Flask(__name__)
 cors = CORS(api)
@@ -31,7 +32,7 @@ def get_rps():
     quer_params = request.args
     _Rp = Rp
     if(len(quer_params) > 0):
-        ids = quer_params['id'].strip().split(',')
+        ids = quer_params['id'].replace(' ', '').split(',')
         _Rp = []
         for id in ids:
             _Rp.append(list(filter(lambda x: x['id'] == id, Rp))[0])
@@ -51,9 +52,8 @@ def get_rp_by_id(rp_id):
 
 @api.route('/pca', methods=['GET'])
 def get_results_of_pca():
-    list = A_2.tolist()
     return json.dumps({
-            "data": list
+            "data": A_pca
         })
 
 @api.route('/umap', methods=['GET'])
@@ -74,13 +74,36 @@ def pca():
     print('Started fitting...')
     pca.fit(bertData)
     print(pca.explained_variance_ratio_)
-    global A_2
-    A_2 = pca.transform(bertData)
-    print(A_2.shape)
-    
-    fig = px.scatter(A_2, x=0, y=1,title='PCA', color=Labels)
+    global A_pca
+    A_pca = pca.transform(bertData)
+    print(A_pca.shape)
+    A_pca = A_pca.tolist()
+    A_pca = prepareDtoData(A_pca)
+    if(draw == False):
+        return
+
+    fig = px.scatter(A_pca, x=0, y=1,title='PCA', color=Labels)
     fig.write_image('plots/pca.png')
     fig.show()
+
+def prepareDtoData(dataList):
+    tmp = []
+    for i in range(len(dataList)):
+        tmp.append([Labels[i], {'id': Ids[i], 'values': dataList[i]}])
+
+    list_dto = []
+    for label in UniqueLabels:
+        series = filter(lambda x: x[0] == label, tmp)
+        series = list(series)
+        seriesWithoutLabel = []
+        for s in series:
+            seriesWithoutLabel.append(s[1])
+ 
+        list_dto.append({
+            'label': label,
+            'data': seriesWithoutLabel
+        })
+    return list_dto
 
 def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
     print(f'Starting umap (n_neighbors={n_neighbors}, min_dist={min_dist}, metric={metric})...')
@@ -91,10 +114,12 @@ def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
     fit = reducer.fit(bertData)
 
     embedding = reducer.transform(bertData)
-    draw_embedding(embedding, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
     B = embedding.tolist()
-    print(type(B))
+    B = prepareDtoData(B)
+    if(draw == False):
+        return
 
+    draw_embedding(embedding, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
 
 def draw_embedding(data, labels, show=True, name="plot"):
     # p = umap.plot.points(data, labels=np.array(labels))
@@ -139,6 +164,10 @@ def tsne():
     tsne = TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(arr)
     global T
     T = tsne.tolist()
+    T = prepareDtoData(T)
+    if(draw == False):
+        return
+
     fig = px.scatter(tsne, x=0, y=1,title='t-SNE', color=Labels)
     fig.write_image('plots/tSNE.png')
     fig.show()
@@ -148,6 +177,8 @@ def preload():
     global Ids
     global Rp
     global Labels
+    global UniqueLabels
+
     bertData = []
     Ids = []
     print('Loading herbert data')
@@ -163,10 +194,24 @@ def preload():
         for line in f.iter():
             Rp.append(line)
             Labels.append(line['label'])
+    
+    UniqueLabels = []
+    for label in Labels:
+        if(label in UniqueLabels):
+            continue
+        UniqueLabels.append(label)
+
+def readConfig():
+    global draw
+    draw = False
+    with open(configPath, 'r') as file:
+        data = json.load(file)
+        draw = data['drawPlots']
+        print(draw)
 
 if __name__ == '__main__':
+    readConfig()
     preload()
-    
     pca()
     startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
     tsne()
