@@ -78,6 +78,7 @@ def pca():
     A_pca = pca.transform(bertData)
     print(A_pca.shape)
     A_pca = A_pca.tolist()
+    A_pca = [[round(cords[0], 3), round(cords[1], 3)] for cords in A_pca]
     A_pca = prepareDtoData(A_pca)
     if(draw == False):
         return
@@ -115,6 +116,7 @@ def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
 
     embedding = reducer.transform(bertData)
     B = embedding.tolist()
+    B = [[round(cords[0], 3), round(cords[1], 3)] for cords in B]
     B = prepareDtoData(B)
     if(draw == False):
         return
@@ -164,6 +166,7 @@ def tsne():
     tsne = TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(arr)
     global T
     T = tsne.tolist()
+    T = [[round(cords[0], 3), round(cords[1], 3)] for cords in T]
     T = prepareDtoData(T)
     if(draw == False):
         return
