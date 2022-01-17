@@ -11,6 +11,7 @@ from flask_cors import CORS
 from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.manifold import TSNE
+import random 
 
 # file paths
 filePathRpHerbertKgr10Data = 'data/rp_herbert-kgr10.json'
@@ -101,7 +102,8 @@ def prepareDtoData(dataList):
  
         list_dto.append({
             'data': seriesWithoutLabel,
-            'label': label,
+            'name': label,
+            'color': f'rgba({random.randint(0,255)},{random.randint(0,255)},{random.randint(0,255)})'
         })
     return list_dto
 
@@ -213,7 +215,7 @@ if __name__ == '__main__':
     readConfig()
     preload()
     pca()
-    #startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
-    #tsne()
+    startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
+    tsne()
     
     api.run() 
