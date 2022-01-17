@@ -53,18 +53,18 @@ def get_rp_by_id(rp_id):
 @api.route('/pca', methods=['GET'])
 def get_results_of_pca():
     return json.dumps({
-            "data": A_pca
+            "series": A_pca
         })
 
 @api.route('/umap', methods=['GET'])
 def get_results_of_umap():
     return json.dumps({
-            "data": B
+            "series": B
         })
 @api.route('/tsne', methods=['GET'])
 def get_results_of_tsne():
     return json.dumps({
-        'data': T
+        'series': T
     })
 
 def pca():
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     readConfig()
     preload()
     pca()
-    startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
-    tsne()
+    #startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
+    #tsne()
     
     api.run() 
