@@ -89,7 +89,7 @@ def pca():
 def prepareDtoData(dataList):
     tmp = []
     for i in range(len(dataList)):
-        tmp.append([Labels[i], {'id': Ids[i], 'values': dataList[i]}])
+        tmp.append([Labels[i], {'name': Ids[i], 'x': dataList[i][0], 'y': dataList[i][1]}])
 
     list_dto = []
     for label in UniqueLabels:
@@ -100,8 +100,8 @@ def prepareDtoData(dataList):
             seriesWithoutLabel.append(s[1])
  
         list_dto.append({
+            'data': seriesWithoutLabel,
             'label': label,
-            'data': seriesWithoutLabel
         })
     return list_dto
 
