@@ -213,7 +213,7 @@ if __name__ == '__main__':
     readConfig()
     preload()
     pca()
-    #startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
-    #tsne()
+    startUmap(metric='cosine', n_neighbors=4, min_dist=0.0)
+    tsne()
     
     api.run() 
