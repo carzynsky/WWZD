@@ -11,6 +11,7 @@ from flask_cors import CORS
 from sklearn.decomposition import PCA
 import plotly.express as px
 from sklearn.manifold import TSNE
+import random 
 
 # file paths
 rpFilePath = 'newData/rp.jsonl'
@@ -107,7 +108,8 @@ def prepareDtoData(dataList):
  
         list_dto.append({
             'data': seriesWithoutLabel,
-            'label': label,
+            'name': label,
+            'color': f'rgba({random.randint(0,255)},{random.randint(0,255)},{random.randint(0,255)})'
         })
     return list_dto
 
