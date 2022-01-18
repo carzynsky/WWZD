@@ -13,7 +13,6 @@ import plotly.express as px
 from sklearn.manifold import TSNE
 
 # file paths
-filePathRpHerbertKgr10Data = 'data/rp_herbert-kgr10.json'
 rpFilePath = 'newData/rp.jsonl'
 herbertFilePath = 'newData/herbert.jsonl'
 configPath = 'config.json'
@@ -52,40 +51,46 @@ def get_rp_by_id(rp_id):
 
 @api.route('/pca', methods=['GET'])
 def get_results_of_pca():
+    data = request.args['data']
     return json.dumps({
-            "series": A_pca
+            "series": A_pca[data]
         })
 
 @api.route('/umap', methods=['GET'])
 def get_results_of_umap():
+    data = request.args['data']
     return json.dumps({
-            "series": B
+            "series": B[data]
         })
 @api.route('/tsne', methods=['GET'])
 def get_results_of_tsne():
+    data = request.args['data']
     return json.dumps({
-        'series': T
+        'series': T[data]
     })
 
 def pca():
-    # open and load file
-    print('Set pca components')
-    pca = PCA(n_components=2)
-    print('Started fitting...')
-    pca.fit(bertData)
-    print(pca.explained_variance_ratio_)
+    print('[PCA] fit and transform')
     global A_pca
-    A_pca = pca.transform(bertData)
-    print(A_pca.shape)
-    A_pca = A_pca.tolist()
-    A_pca = [[round(cords[0], 3), round(cords[1], 3)] for cords in A_pca]
-    A_pca = prepareDtoData(A_pca)
+    A_pca = {
+        'herbert': PCA(n_components=2).fit_transform(bertData).tolist(),
+        'dKleczekBert': PCA(n_components=2).fit_transform(dKleczekBertData).tolist(),
+        'stDistiluse': PCA(n_components=2).fit_transform(stDistiluseData).tolist(),
+        'tfidf': PCA(n_components=2).fit_transform(tfidfData).tolist()
+    }
+
+    print('[PCA] format data')
+    for key, value in A_pca.items():
+        x  = [[round(cords[0], 3), round(cords[1], 3)] for cords in value]
+        x = prepareDtoData(x)
+        A_pca[key] = x
+
     if(draw == False):
         return
 
-    fig = px.scatter(A_pca, x=0, y=1,title='PCA', color=Labels)
-    fig.write_image('plots/pca.png')
-    fig.show()
+    # fig = px.scatter(A_pca, x=0, y=1,title='PCA', color=Labels)
+    # fig.write_image('plots/pca.png')
+    # fig.show()
 
 def prepareDtoData(dataList):
     tmp = []
@@ -107,21 +112,26 @@ def prepareDtoData(dataList):
     return list_dto
 
 def startUmap(n_neighbors=5, min_dist=0.3, metric='cosine'):
-    print(f'Starting umap (n_neighbors={n_neighbors}, min_dist={min_dist}, metric={metric})...')
+    print(f'[UMAP] Parameters (n_neighbors={n_neighbors}, min_dist={min_dist}, metric={metric})')
     global B
-    reducer = umap.UMAP(n_neighbors=n_neighbors,
-                      min_dist=min_dist,
-                      metric=metric)
-    fit = reducer.fit(bertData)
+    print('[UMAP] Fit and transform')
+    B = {
+        'herbert': umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric).fit_transform(bertData).tolist(),
+        'dKleczekBert': umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric).fit_transform(dKleczekBertData).tolist(),
+        'stDistiluse': umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric).fit_transform(stDistiluseData).tolist(),
+        'tfidf': umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric).fit_transform(tfidfData).tolist()
+    }
 
-    embedding = reducer.transform(bertData)
-    B = embedding.tolist()
-    B = [[round(cords[0], 3), round(cords[1], 3)] for cords in B]
-    B = prepareDtoData(B)
+    print('[UMAP] format data')
+    for key, value in B.items():
+        x  = [[round(cords[0], 3), round(cords[1], 3)] for cords in value]
+        x = prepareDtoData(x)
+        B[key] = x
+
     if(draw == False):
         return
 
-    draw_embedding(embedding, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
+    #draw_embedding(embedding, Labels,  show=True, name=f"umap_{n_neighbors}-{min_dist}-{metric}")
 
 def draw_embedding(data, labels, show=True, name="plot"):
     # p = umap.plot.points(data, labels=np.array(labels))
@@ -161,22 +171,33 @@ def tsne():
 
     # n-iter: Maximum number of iterations for the optimization. 
     # Should be at least 250.
-    arr = np.array(bertData)
-    print('t-SNE fit and transform started')
-    tsne = TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(arr)
+
+    print('[TSNE] Fit and transform')
     global T
-    T = tsne.tolist()
-    T = [[round(cords[0], 3), round(cords[1], 3)] for cords in T]
-    T = prepareDtoData(T)
+    T = {
+        'herbert': TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(np.array(bertData)).tolist(),
+        'dKleczekBert': TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(np.array(dKleczekBertData)).tolist(),
+        'stDistiluse': TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(np.array(stDistiluseData)).tolist(),
+        'tfidf': TSNE(n_components = 2, perplexity=5, init='random', learning_rate='auto', n_iter=1000).fit_transform(np.array(tfidfData)).tolist()
+    }
+
+    for key, value in T.items():
+        x = [[round(cords[0], 3), round(cords[1], 3)] for cords in value]
+        x = prepareDtoData(x)
+        T[key] = x
+
     if(draw == False):
         return
 
-    fig = px.scatter(tsne, x=0, y=1,title='t-SNE', color=Labels)
-    fig.write_image('plots/tSNE.png')
-    fig.show()
+    # fig = px.scatter(tsne, x=0, y=1,title='t-SNE', color=Labels)
+    # fig.write_image('plots/tSNE.png')
+    # fig.show()
 
 def preload():
     global bertData
+    global tfidfData
+    global dKleczekBertData
+    global stDistiluseData
     global Ids
     global Rp
     global Labels
@@ -184,15 +205,33 @@ def preload():
 
     bertData = []
     Ids = []
-    print('Loading herbert data')
+    print('[PRELOAD] Loading herbert data')
     with jsonlines.open(herbertFilePath) as f:
         for line in f.iter():
             bertData.append(line['features'])
             Ids.append(line['id'])
 
+    tfidfData = []
+    print('[PRELOAD] Loading tfidf data')
+    with jsonlines.open('./newData/tfidf.jsonl') as file:
+        for line in file.iter():
+            tfidfData.append(line['features'])
+    
+    dKleczekBertData = []
+    print('[PRELOAD] Loading dkleczek_bert data')
+    with jsonlines.open('./newData/dkleczek_bert.jsonl') as file:
+        for line in file.iter():
+            dKleczekBertData.append(line['features'])
+
+    stDistiluseData = []
+    print('[PRELOAD] Loading st_distiluse data')
+    with jsonlines.open('./newData/st_distiluse.jsonl') as file:
+        for line in file.iter():
+            stDistiluseData.append(line['features'])
+
     Rp = []
     Labels = []
-    print('Loading rp data...')
+    print('[PRELOAD] Loading rp data')
     with jsonlines.open(rpFilePath) as f:
         for line in f.iter():
             Rp.append(line)
